@@ -1,0 +1,35 @@
+
+
+# Stage 1: Build TypeScript code
+FROM node:14 AS builder
+
+# Set the working directory within the container
+WORKDIR /app
+
+# Copy the package.json and package-lock.json files to the container
+COPY package*.json ./
+
+# Install project dependencies
+RUN npm install
+
+# Copy the TypeScript source code to the container
+COPY . .
+
+# Build the TypeScript code
+RUN npm run build
+
+# Stage 2: Create the final image
+FROM node:14-alpine
+
+# Set the working directory within the container
+WORKDIR /app
+
+# Copy only the necessary files from the build stage
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+
+# Expose the port your application will run on (replace with the actual port)
+EXPOSE 3000
+
+# Start your TypeScript application (modify the command based on your setup)
+CMD [ "node", "./dist/app.js" ]
