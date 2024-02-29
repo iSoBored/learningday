@@ -1,0 +1,43 @@
+config:
+  target: "https://887a-111-223-125-140.ngrok-free.app"
+  phases:
+    # - duration: 60
+    #   arrivalRate: 1
+    #   rampTo: 5
+    #   name: Warm up phase
+    - duration: 5
+      arrivalRate: 1
+      name: Ramp up load
+    - duration: 10
+      arrivalRate: 2
+      name: Spike phase
+  plugins:
+    apdex: {}
+    metrics-by-endpoint: {}
+  apdex:
+    threshold: 200
+
+before:
+  flow:
+    - post:
+        url: "/auth"
+        json:
+          username: "admin"
+          password: "password"
+        capture:
+          - json: $.token
+            as: token
+
+scenarios:
+  - flow:
+      - get:
+          url : "/data"
+          headers:
+            Authorization: "Bearer {{ token }}"
+
+after:
+  flow:
+    - get:
+        url: "/logout"
+        headers:
+          Authorization: "Bearer {{ token }}"
